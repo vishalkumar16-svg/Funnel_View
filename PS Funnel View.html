@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Funnel View</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f3f2f0;--cd:#fff;--tx:#2b2622;--mu:#7a7068;--bd:#e2ddd5;--ac:#7b5a3c;--hv:#f1e9de;--ao:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1a18;--cd:#26231f;--tx:#f0ebe4;--mu:#a39a8f;--bd:#3a352f;--ac:#c9a47a;--hv:#332d26;--ao:#1c1a18}}
+:root[data-theme="dark"]{--bg:#1c1a18;--cd:#26231f;--tx:#f0ebe4;--mu:#a39a8f;--bd:#3a352f;--ac:#c9a47a;--hv:#332d26;--ao:#1c1a18}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+.w{max-width:1280px;margin:0 auto;padding:20px 16px 60px}
+h1{font:700 28px/1.1 Georgia,"Times New Roman",serif;margin:0}
+h2{font:600 15px/1.3 Georgia,serif;margin:0 0 10px}
+.sub{color:var(--mu);margin:4px 0 16px}
+.g{display:grid;gap:12px}
+.up{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.k{grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin:14px 0}
+.c2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.cd{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:14px;min-width:0}
+.dz{border:1.5px dashed var(--bd);border-radius:10px;padding:12px;background:var(--cd);cursor:pointer;display:block}
+.dz:hover,.dz.ov{border-color:var(--ac);background:var(--hv)}
+.dz b{display:block}.dz span{color:var(--mu);font-size:12px}.dz input{display:none}
+[hidden]{display:none!important}
+.uc{display:flex;flex-direction:column;gap:8px;border-top:3px solid var(--bd)}
+.uc.ok{border-top-color:#4f7a5a}.uc.warn{border-top-color:#d08c3c}.uc.ov{background:var(--hv);border-color:var(--ac)}
+.uh{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.uh span{color:var(--mu);font-size:12px}
+.drop{border:1.5px dashed var(--bd);border-radius:8px;padding:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--mu)}
+.drop em{flex-basis:100%;font-style:normal}
+label.btn{display:inline-block;border:1px solid var(--bd);border-radius:8px;padding:6px 10px;cursor:pointer;color:var(--tx);background:var(--cd);font-size:14px}label.btn:hover{border-color:var(--ac)}
+.pa textarea{height:90px;margin-bottom:6px}
+.fl{max-height:340px;overflow:auto}.fi{border-top:1px solid var(--bd);padding-top:6px;margin-top:4px}.fr{display:flex;justify-content:space-between;gap:6px}.fr span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.fr button{padding:0 8px;border-radius:6px}
+.pgb{height:4px;background:var(--hv);border-radius:3px;overflow:hidden;margin:4px 0}.pgb i{display:block;height:100%;background:var(--ac)}
+.fs{font-size:12px;color:var(--mu)}.fs.w{color:#b0662a}
+.kp{border-top:3px solid var(--ac);transition:transform .2s,border-color .2s}.kp:hover{transform:translateY(-3px);border-color:var(--ac)}.kp b{font-size:24px;display:block;line-height:1.2}.kp span{color:var(--mu);font-size:12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+label{color:var(--mu);font-size:12px;display:inline-flex;gap:6px;align-items:center}#c2,#c7,#c8{cursor:pointer}.chips button{background:var(--hv);color:var(--ac);border-color:var(--ac);font-size:12px;padding:2px 10px;border-radius:14px}
+select,button,textarea,input[type=date]{font:inherit;color:var(--tx);background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:6px 10px}
+button{cursor:pointer}button:hover{border-color:var(--ac)}
+.tb{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+.tb button.on{background:var(--ac);color:var(--ao);border-color:var(--ac)}
+.ch{height:290px;position:relative}
+.sc{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:5px 8px;border-bottom:1px solid var(--bd);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--ac);background:var(--hv);font-weight:600}
+ul{margin:0;padding-left:18px}li{margin:4px 0}
+textarea{width:100%;height:150px;font:12px/1.4 ui-monospace,Consolas,monospace}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:10px}#st{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));background:var(--cd);border:1px solid var(--bd);border-radius:20px;padding:4px 12px;color:var(--mu);font-size:12px;z-index:5}#st:empty{display:none}a{color:var(--ac)}.hd{background:linear-gradient(135deg,#3f2b1e,#8a6544);color:#fff;border-radius:12px;padding:16px 18px;margin-bottom:12px}.hd h1{color:#fff}.hd button{background:#f6efe4;color:#4a3324;border-color:#fff;font-weight:600}.hd+.sub a{font-weight:600}
+.mt{margin-top:12px}
+</style></head><body><div class="w">
+<header class="hd"><h1>Funnel View</h1><button id="th" type="button"></button></header>
+<p class="sub">Upload your dumps in the <a href="#upl">upload section</a> at the bottom of the page.</p>
+<div class="cd"><div class="bar" style="margin:0"><select id="ft"></select><select id="fo"></select><select id="fc"></select><select id="fw"><option value="">Walk-in: any</option><option value="1">Walked in</option><option value="0">Not walked in</option></select><select id="ff"><option value="">Lead age: any</option><option value="f">Fresh post all-time dump</option><option value="o">Already in all-time dump</option></select><label>Created from <input type="date" id="d1"></label><label>to <input type="date" id="d2"></label><button id="rs" type="button">Reset filters</button></div><div class="bar" id="fx" style="margin:8px 0 0"></div><div class="bar chips" id="chips" style="margin:8px 0 0"></div></div>
+<div class="tb" id="tabs"></div>
+<div class="g k" id="kp"></div>
+<div class="g c2">
+<div class="cd"><h2>Funnel</h2><div class="ch"><canvas id="c1"></canvas></div></div>
+<div class="cd"><h2>Category mix</h2><div class="ch"><canvas id="c2"></canvas></div></div>
+<div class="cd"><h2>Daily leads created vs enrolled</h2><div class="ch"><canvas id="c3"></canvas></div></div>
+<div class="cd"><h2>Cumulative leads and enrolments</h2><div class="ch"><canvas id="c4"></canvas></div></div>
+<div class="cd"><h2>Baseline category → current category</h2><div class="ch"><canvas id="c5"></canvas></div></div>
+<div class="cd"><h2>Breakdown by <select id="dim"></select></h2><div class="ch"><canvas id="c6"></canvas></div></div>
+</div>
+<div class="cd mt"><h2>Insights</h2><ul id="ins"></ul></div>
+<div class="cd mt"><h2>Hot and warm against total leads</h2><div class="sc" id="hw"></div></div>
+<div class="cd mt"><h2>Category share (% of total leads in view)</h2><div class="sc" id="cs"></div></div>
+<div class="g c2 mt"><div class="cd"><h2>Team wise hot and warm leads</h2><div class="ch"><canvas id="c7"></canvas></div></div><div class="cd"><h2>Each team’s share of all hot and warm</h2><div class="ch"><canvas id="c8"></canvas></div></div></div>
+<div class="cd mt"><h2>Team hot and warm contribution</h2><div class="sc" id="tc"></div></div>
+<div class="cd mt"><h2>Conversion by all-time category</h2><p class="sub" id="cvn"></p><div class="sc" id="cv"></div></div>
+<div class="cd mt"><h2>Movement matrix (rows: all-time category, columns: now)</h2><div class="sc" id="mx"></div></div>
+<div class="cd mt"><h2>Team wise</h2><div class="sc" id="tt"></div></div>
+<div class="cd mt"><h2>Team wise % (of team leads)</h2><div class="sc" id="ttp"></div></div>
+<div class="cd mt"><h2>Counsellor wise (owner email)</h2><div class="sc" id="ct"></div></div>
+<div class="cd mt"><h2>Counsellor wise % (of counsellor leads)</h2><div class="sc" id="ctp"></div></div>
+<div class="cd mt" id="upl"><h2>Upload data</h2><p class="sub">Upload files, or paste rows copied from a sheet (use Paste from sheet, include the header row). Each box shows what was read and has its own Clear button. The dashboard above updates as each file loads.</p>
+<div class="g up" id="up"></div>
+<div class="bar"><button id="clr">Clear all</button></div>
+<details class="cd"><summary>Category rules (edit and apply)</summary>
+<p class="sub">One line per rule: Category | Sub-disposition | Status | Stage. A lead’s calling status (inbound, outbound, PS-IB) is matched to the sub-disposition first, then its lead category fields, then Stage and Status. Enrolled is also detected from the enrollment fields. Edit or add lines, then apply.</p>
+<textarea id="rules"></textarea><div class="mt"><button id="ar">Apply rules</button></div></details></div><span id="st"></span>
+</div>
+<script>
+const CATS=['HOT','WARM','NEW-CONTACTABILITY','COLD','INTERESTED IN VP','CLOSED LOST','JUNK / INVALID','ALREADY ENROLLED IN PW'];
+const SH=['HOT','WARM','NEW','COLD','VP','LOST','JUNK','ENRL'];
+const COL=['#a63d2f','#d08c3c','#7d8a99','#b9b0a4','#6b4f7a','#8a7f74','#4a433c','#4f7a5a'];
+const DIMS={Class:'Student Details - Interested Admission Class',Stream:'Student Details - Interested Admission Stream',Centre:'Student Details - Interested Admission Center',Course:'Student Details - Interested Course','Walk-in stage':'Student Details - Walk-in Stage',Phase:'Scholarship - Phase',Mode:'Scholarship - Mode','Scholarship type':'Scholarship - Scholarship Type','Converted centre':'Enrollment Details - Converted Centre Name'};
+const SLOTS=[['base','All-time LSQ dump'],['ob','OB calling dump'],['ib','IB calling dump'],['nsat','NSAT calling dump'],['team','Team mapping'],['oth','Any other dump']];
+const $=s=>document.querySelector(s),tick=()=>new Promise(r=>setTimeout(r));
+const esc=s=>(s+'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pc=(a,b)=>b?(a*100/b).toFixed(1)+'%':'–';
+$('#rules').value=`ALREADY ENROLLED IN PW=already enrol|enrolled|converted
+JUNK / INVALID=junk|invalid|wrong number|fake|duplicate
+CLOSED LOST=closed lost|lost|not interested|joined other|joined elsewhere|not looking
+INTERESTED IN VP=\\bvp\\b|vidyapeeth
+HOT=\\bhot\\b|ready to enrol|will enrol|payment pending|token
+WARM=warm|interested|follow.?up|decision pending|considering
+COLD=cold|delayed|next year|low intent|later
+NEW-CONTACTABILITY=new|not connected|not reachable|ringing|no answer|switched off|busy|not picked|untouched`;
+let RX=[],baseRaw=[],dumpRaw={},teamMap=new Map(),tab='ALL',charts={},info={};
+function D(v){if(v===''||v==null)return 0;if(typeof v==='number')return v>20000&&v<90000?Math.round((v-25569)*864e5):0;let s=(v+'').trim(),m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})(.*)$/);if(m)s=m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0')+m[4];const t=Date.parse(s.replace(' ','T'));return isNaN(t)?0:t}
+function parseRules(){RX=$('#rules').value.split('\n').map(l=>{const i=l.indexOf('=');if(i<1)return null;const x=CATS.indexOf(l.slice(0,i).trim().toUpperCase());if(x<0)return null;try{return[x,new RegExp(l.slice(i+1).trim(),'i')]}catch(e){return null}}).filter(Boolean)}
+function cls(r){if(r.enr)return 7;for(const t of[r.c1,r.c2]){if(!t)continue;for(const[i,re]of RX)if(re.test(t))return i}return 2}
+function proj(o){const g=k=>(o[k]==null?'':o[k])+'';const reg=g('Enrollment Details - Reg No.').trim();
+const r={k:g('Opportunity Id')||g('Prospect Id'),em:g('Owner (User Email)').toLowerCase().trim(),cr:D(o['Created On']),md:D(o['Modified On']),ed:D(o['Enrollment Details - Converted Date And Time']),
+walk:!!g('Student Details - Actual Walk-In Date').trim()||/done|visited|completed/i.test(g('Student Details - Walk-in Stage')),
+enr:/^(yes|true|1)$/i.test(g('Enrollment Details - Converted').trim())||!!reg||!!g('Enrollment Details - Converted Date And Time').trim(),
+c1:[g('Inbound Details - Inbound Lead Category'),g('Outbound Details - Outbound Lead Category'),g('PS - IB Details - Lead Category IB PSIB')].filter(Boolean).join(' | '),
+c2:[g('Stage'),g('Status'),g('Inbound Details - Inbound Calling Status'),g('Outbound Details - Calling Status')].filter(Boolean).join(' | '),dm:{}};
+for(const n in DIMS)r.dm[n]=g(DIMS[n]).trim()||'(blank)';r.ct=cls(r);return r}
+const T=em=>teamMap.get(em)||'Unmapped';
+function setSt(t){$('#st').textContent=t}
+async function ingest(slot,files){for(const f of files){setSt('Reading '+f.name+'…');await tick();
+const wb=XLSX.read(await f.arrayBuffer(),{type:'array',dense:true});
+const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});setSt('Processing '+rows.length.toLocaleString()+' rows…');await tick();
+if(slot==='team'){const ks=Object.keys(rows[0]||{}),ek=ks.find(k=>/mail/i.test(k))||ks[0],tk=ks.find(k=>k!==ek&&/team|tl|manager|group|cluster|city|region/i.test(k))||ks.find(k=>k!==ek);
+for(const o of rows)if(o[ek])teamMap.set((o[ek]+'').toLowerCase().trim(),(o[tk]+'').trim()||'Unmapped')}
+else{const nm=slot==='base'?'BASE':slot==='oth'?f.name.replace(/\.\w+$/,''):slot.toUpperCase();const arr=slot==='base'?baseRaw:(dumpRaw[nm]=dumpRaw[nm]||[]);
+for(const o of rows){const r=proj(o);if(r.k)arr.push(r)}}
+info[slot]=(info[slot]||0)+rows.length;mark(slot)}
+setSt('Loaded. Add more files any time.');buildOpts();render()}
+function mark(s){const e=$('#z-'+s);e.classList.add('ok');e.querySelector('span').textContent=info[s].toLocaleString()+' rows loaded'+(s==='team'?' · '+teamMap.size+' counsellors':'')}
+SLOTS.forEach(([s,l])=>{const d=document.createElement('label');d.className='dz';d.id='z-'+s;d.innerHTML='<b>'+l+'</b><span>Drop or click · .xlsx .xls .csv · no file limit</span><input type="file" multiple accept=".xlsx,.xls,.csv">';
+const i=d.querySelector('input');i.onchange=()=>{ingest(s,[...i.files]);i.value=''};
+d.ondragover=e=>{e.preventDefault();d.classList.add('ov')};d.ondragleave=()=>d.classList.remove('ov');d.ondrop=e=>{e.preventDefault();d.classList.remove('ov');ingest(s,[...e.dataTransfer.files])};$('#up').appendChild(d)});
+$('#dim').innerHTML=Object.keys(DIMS).map(k=>'<option>'+k+'</option>').join('');
+let DV={},BM=new Map(),BMn=-1;const DK=Object.keys(DIMS);
+$('#fc').innerHTML='<option value="">All categories</option>'+CATS.map((c,i)=>'<option value="'+i+'">'+c+'</option>').join('');
+$('#fx').innerHTML=DK.map((k,i)=>'<select id="x'+i+'"></select>').join('');
+DK.forEach((k,i)=>$('#x'+i).onchange=render);
+['fc','fw','ff','d1','d2'].forEach(i=>$('#'+i).onchange=render);
+$('#rs').onclick=()=>{['ft','fo','fc','fw','ff','d1','d2',...DK.map((k,i)=>'x'+i)].forEach(i=>document.getElementById(i).value='');render()};
+function pickF(id,v){document.getElementById(id).value=v;render()}
+function buildOpts(){DV={};DK.forEach(k=>DV[k]=new Set());const add=a=>{for(const r of a)for(const k of DK)DV[k].add(r.dm[k])};add(baseRaw);for(const k in dumpRaw)add(dumpRaw[k])}
+$('#dim').onchange=render;$('#ft').onchange=()=>{$('#fo').value='';render()};$('#fo').onchange=render;
+const nz=s=>(s+'').toLowerCase().replace(/[^a-z0-9]+/g,''),CN=CATS.map(nz);
+const TBL=`HOT|Ready to Pay - On Call or Via App/Web|Open|Follow Up
+HOT|Payment Date Confirmed|Open|Follow Up
+HOT|Will Surely Enroll (Within 3 Days)|Open|Follow Up
+HOT|Centre Visit Confirmed → Enroll|Open|Follow Up
+HOT|Visit Planned → Decision Pending|Open|Follow Up
+HOT|Will Enroll After Final Discussion|Open|Follow Up
+WARM|Interested - Discuss with Parents|Open|Follow Up
+WARM|Callback Requested (Counselled)|Open|Follow Up
+WARM|Will Discuss After Exams (School & Competitive Exam)|Open|Follow Up
+WARM|Will Discuss After Scholarship (NSAT / SAT)|Open|Follow Up
+WARM|Will Pay After Discount Discussion|Open|Follow Up
+WARM|Exploring Competition|Open|Follow Up
+WARM|Centre Visit Planned|Open|Follow Up
+WARM|Program / Centre Decision Pending|Open|Follow Up
+WARM|Need More Installments|Open|Follow Up
+WARM|Transportation Concern|Open|Follow Up
+WARM|Hostel / Residential Concern|Open|Follow Up
+WARM|Result / Scholarship Concern|Open|Follow Up
+COLD|Will Buy Later|Open|Prospecting
+COLD|Financial Constraint|Open|Prospecting
+COLD|Preparing for Boards|Open|Prospecting
+COLD|Interested in Online|Open|Prospecting
+COLD|Distance Concern|Open|Prospecting
+COLD|Competition Offering Lower Price|Open|Prospecting
+COLD|Batch Already Started|Open|Prospecting
+COLD|Academic Concern|Open|Prospecting
+NEW- CONTACTABILITY|1st Call Dropped|Open|Not Able To Connect
+NEW- CONTACTABILITY|Busy|Open|Not Able To Connect
+NEW- CONTACTABILITY|Call Dropped|Open|Not Able To Connect
+NEW- CONTACTABILITY|Callback Requested|Open|Not Able To Connect
+NEW- CONTACTABILITY|DNP|Open|Not Able To Connect
+NEW- CONTACTABILITY|Language Barrier|Open|Not Able To Connect
+NEW- CONTACTABILITY|No Answer|Open|Not Able To Connect
+INTERESTED IN VP|Interested in VP (Counselled)|Open|Follow Up
+INTERESTED IN VP|VP Counselling Required|Open|Follow Up
+INTERESTED IN VP|VP Follow-up Required|Open|Follow Up
+ALREADY ENROLLED IN PW|Already Enrolled - Online|Won|
+ALREADY ENROLLED IN PW|Already Enrolled - PS|Won|
+ALREADY ENROLLED IN PW|Already Enrolled - VP|Won|
+CLOSED LOST|Admission Window Closed|Lost|Disqualified / Junk
+CLOSED LOST|Centre Not Available|Lost|Disqualified / Junk
+CLOSED LOST|Competition Enrolled|Lost|Disqualified / Junk
+CLOSED LOST|Distance - No Alternative|Lost|Disqualified / Junk
+CLOSED LOST|Fees / Discount / Installment - Not Agreed|Lost|Disqualified / Junk
+CLOSED LOST|Financial Constraint - No Purchase|Lost|Disqualified / Junk
+CLOSED LOST|No Decision After Multiple Follow-ups|Open|Follow Up
+CLOSED LOST|Not Interested This Year|Lost|Not Interested
+CLOSED LOST|Other Genuine Lost Reason|Lost|Not Interested
+CLOSED LOST|Parent Rejected|Lost|Not Interested
+CLOSED LOST|Student Rejected|Lost|Not Interested
+JUNK / INVALID|College Student|Lost|Disqualified / Junk
+JUNK / INVALID|Did Not Enquire|Lost|Not Interested
+JUNK / INVALID|Duplicate|Lost|Disqualified / Junk
+JUNK / INVALID|Invalid Lead|Lost|Disqualified / Junk
+JUNK / INVALID|Irrelevant Stream|Lost|Disqualified / Junk
+JUNK / INVALID|No Incoming / Blocked|Lost|Disqualified / Junk
+JUNK / INVALID|Other Invalid Reason|Lost|Not Interested
+JUNK / INVALID|PW Employee|Lost|Disqualified / Junk
+JUNK / INVALID|Spam / Test Lead|Lost|Disqualified / Junk
+JUNK / INVALID|Support / Misc. Call|Lost|Not Interested
+JUNK / INVALID|Wrong Number|Lost|Disqualified / Junk`;
+$('#rules').value=TBL;let SUB=new Map();
+function parseRules(){SUB=new Map();for(const l of $('#rules').value.split('\n')){const p=l.split('|').map(x=>x.trim());if(p.length<2||!p[1])continue;const x=CN.indexOf(nz(p[0]));if(x>=0)SUB.set(nz(p[1]),x)}}
+function cls(r){if(r.enr)return 7;for(const s of r.sub){const x=SUB.get(nz(s));if(x!==undefined)return x}for(const c of r.cat){const x=CN.indexOf(nz(c));if(x>=0)return x}
+const st=nz(r.st),sg=nz(r.sg);if(st==='won')return 7;if(sg==='notabletoconnect')return 2;if(sg==='prospecting')return 3;if(sg==='disqualifiedjunk')return 6;if(sg==='notinterested'||st==='lost')return 5;if(sg==='followup')return 1;return 2}
+function proj(o){const g=k=>(o[k]==null?'':o[k])+'';const reg=g('Enrollment Details - Reg No.').trim();
+const r={k:g('Opportunity Id')||g('Prospect Id'),em:g('Owner (User Email)').toLowerCase().trim(),cr:D(o['Created On']),md:D(o['Modified On']),ed:D(o['Enrollment Details - Converted Date And Time']),
+walk:!!g('Student Details - Actual Walk-In Date').trim()||/done|visited|completed/i.test(g('Student Details - Walk-in Stage')),
+enr:/^(yes|true|1)$/i.test(g('Enrollment Details - Converted').trim())||!!reg||!!g('Enrollment Details - Converted Date And Time').trim(),
+sub:[g('Inbound Details - Inbound Calling Status'),g('Outbound Details - Calling Status'),g('PS - IB Details - Inbound Calling Status')].filter(Boolean),
+cat:[g('Inbound Details - Inbound Lead Category'),g('Outbound Details - Outbound Lead Category'),g('PS - IB Details - Lead Category IB PSIB')].filter(Boolean),
+st:g('Status').trim(),sg:g('Stage').trim(),dm:{}};
+for(const n in DIMS)r.dm[n]=g(DIMS[n]).trim()||'(blank)';r.ct=cls(r);return r}
+function eff(){return document.documentElement.dataset.theme||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}
+$('#th').onclick=()=>{document.documentElement.dataset.theme=eff()==='dark'?'light':'dark';render()};
+$('#ar').onclick=()=>{parseRules();for(const r of baseRaw)r.ct=cls(r);for(const k in dumpRaw)for(const r of dumpRaw[k])r.ct=cls(r);render()};
+$('#clr').onclick=()=>{BMn=-1;DV={};baseRaw=[];dumpRaw={};teamMap=new Map();info={};tab='ALL';document.querySelectorAll('.dz').forEach(e=>{e.classList.remove('ok');e.querySelector('span').textContent='Drop or click · .xlsx .xls .csv · no file limit'});setSt('');render()};
+parseRules();
+const NEED=[...new Set(['Opportunity Id','Prospect Id','Owner (User Email)','Created On','Modified On','Enrollment Details - Converted Date And Time','Enrollment Details - Converted','Enrollment Details - Reg No.','Student Details - Actual Walk-In Date','Inbound Details - Inbound Calling Status','Outbound Details - Calling Status','PS - IB Details - Inbound Calling Status','Inbound Details - Inbound Lead Category','Outbound Details - Outbound Lead Category','PS - IB Details - Lead Category IB PSIB','Status','Stage',...Object.values(DIMS)])];
+let FID=0,PN=0,files={},TF={};
+function mkParser(on){let d=null,row=[],cell='',q=false,pend=false;
+return{feed(s){if(d===null){const l=s.split('\n',1)[0],t=l.split('\t').length-1,c=l.split(',').length-1,m=l.split(';').length-1;d=t>0&&t>=c&&t>=m?'\t':m>c?';':',';if(s.charCodeAt(0)===65279)s=s.slice(1)}
+for(let i=0;i<s.length;i++){const ch=s[i];
+if(pend){pend=false;if(ch==='"'){cell+='"';continue}q=false}
+if(q){if(ch==='"'){if(i+1<s.length){if(s[i+1]==='"'){cell+='"';i++}else q=false}else pend=true}else cell+=ch;continue}
+if(ch==='"'&&cell==='')q=true;else if(ch===d){row.push(cell);cell=''}else if(ch==='\n'){row.push(cell);cell='';on(row);row=[]}else if(ch!=='\r')cell+=ch}},
+end(){if(pend)q=false;if(cell!==''||row.length){row.push(cell);on(row)}}}}
+function mkTeam(rows){if(!rows.length)return new Map();const nc=Math.max(...rows.slice(0,50).map(r=>r.length));const start=rows[0].some(c=>/@/.test(c))?0:1,data=rows.slice(start);
+const st=[...Array(nc)].map((_,j)=>{const v=data.map(r=>((r[j]==null?'':r[j])+'').trim()).filter(Boolean);return{j,u:new Set(v).size,at:v.length?v.filter(x=>x.includes('@')).length/v.length:0}});
+const em=st.slice().sort((a,b)=>(b.at>.5)-(a.at>.5)||b.u-a.u)[0],hd=start?rows[0].map(x=>(x+'').toLowerCase()):[],rest=st.filter(s=>s.j!==em.j),tm=rest.find(s=>/team|tl|manager|group|cluster|region/.test(hd[s.j]||''))||rest[0];
+const m=new Map();for(const r of data){const e=((r[em.j]==null?'':r[em.j])+'').toLowerCase().trim(),t=tm?((r[tm.j]==null?'':r[tm.j])+'').trim():'';if(e)m.set(e,t||'Unmapped')}return m}
+function rebuildTeam(){teamMap=new Map();for(const id in TF)for(const[e,t]of TF[id])teamMap.set(e,t)}
+function dumpCtx(slot,m){let hl=null,idx=null,sk=0;const nm=slot==='base'?'BASE':slot==='oth'?m.name.replace(/\.\w+$/,''):slot.toUpperCase();
+const arr=slot==='base'?baseRaw:(dumpRaw[nm]=dumpRaw[nm]||[]);
+return{row(c){if(c.length===1&&!(c[0]+'').trim())return;
+if(!hl){if(sk>20)return;sk++;const h=c.map(x=>(x+'').trim().toLowerCase()),hit=NEED.filter(k=>h.includes(k.toLowerCase())).length;
+if(h.includes('prospect id')||h.includes('opportunity id')||hit>=3){hl=h;idx={};NEED.forEach(k=>idx[k]=h.indexOf(k.toLowerCase()));m.cols=h.length;m.found=NEED.filter(k=>idx[k]>=0).length;m.miss=NEED.filter(k=>idx[k]<0)}return}
+m.rows++;const o={};for(const k of NEED){const j=idx[k];if(j>=0)o[k]=c[j]}const r=proj(o);if(r.k){r.f=m.id;r.sl=slot;arr.push(r)}},
+end(){if(!arr.length&&slot!=='base')delete dumpRaw[nm];
+if(!hl){m.st='No LSQ header row found. The first rows need columns like Prospect Id or Opportunity Id.';return}
+const cc=Array(8).fill(0);let kept=0;for(const r of arr)if(r.f===m.id){cc[r.ct]++;kept++}m.cc=cc;
+m.st=m.rows.toLocaleString()+' rows · '+m.cols+' columns · '+m.found+'/'+NEED.length+' key columns found'+(kept<m.rows?' · '+(m.rows-kept).toLocaleString()+' rows skipped (no Id)':'')}}}
+function teamCtx(m){const rows=[];return{row(c){if(c.length===1&&!(c[0]+'').trim())return;rows.push(c);m.rows=rows.length},
+end(){const t=mkTeam(rows);TF[m.id]=t;rebuildTeam();const tn=new Set(t.values()).size;m.cols=rows.length?Math.max(...rows.slice(0,50).map(r=>r.length)):0;
+m.st=t.size+' counsellors → '+tn+' team'+(tn===1?'':'s')+(t.size?' · e.g. '+[...t].slice(0,2).map(([e,x])=>e+' → '+x).join('; '):' · nothing readable, check the two columns')}}}
+function pumpFile(f){return async(on,m,pt)=>{if(/\.(csv|tsv|txt)$/i.test(f.name)){const p=mkParser(on),rd=f.stream().getReader(),dec=new TextDecoder();let n=0;
+for(;;){const{done,value}=await rd.read();if(done)break;n+=value.length;p.feed(dec.decode(value,{stream:true}));m.pct=Math.min(99,Math.round(n*100/f.size));m.st='Reading '+m.pct+'% · '+m.rows.toLocaleString()+' rows so far';pt();await tick()}
+p.feed(dec.decode());p.end()}
+else{m.st='Opening workbook…';pt();await tick();const wb=XLSX.read(await f.arrayBuffer(),{type:'array',dense:true});let best=[];
+for(const n of wb.SheetNames){const a=XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,defval:'',raw:true});if(a.length>best.length)best=a}
+m.st='Processing '+best.length.toLocaleString()+' rows…';pt();await tick();for(const r of best)on(r)}}}
+function pumpText(txt){return async(on,m,pt)=>{const p=mkParser(on),S=1<<20;for(let i=0;i<txt.length;i+=S){p.feed(txt.slice(i,i+S));m.pct=Math.min(99,Math.round(i*100/txt.length));m.st='Reading pasted data '+m.pct+'% · '+m.rows.toLocaleString()+' rows so far';pt();await tick()}p.end()}}
+async function run(slot,name,pump){const m={id:++FID,name,rows:0,cols:0,found:0,miss:[],pct:0,st:'Starting…'};(files[slot]=files[slot]||[]).push(m);setSt('Loading '+name+'…');
+const cx=slot==='team'?teamCtx(m):dumpCtx(slot,m);paint(slot);
+try{await pump(cx.row,m,()=>paint(slot));cx.end()}catch(e){m.st='Error: '+(e&&e.message||e)}
+m.pct=100;BMn=-1;buildOpts();paint(slot);setSt('');render()}
+async function addFiles(s,l){for(const f of l)await run(s,f.name,pumpFile(f))}
+function rmFile(s,id){files[s]=(files[s]||[]).filter(m=>m.id!==id);if(s==='team'){delete TF[id];rebuildTeam()}else{baseRaw=baseRaw.filter(r=>r.f!==id);for(const k in dumpRaw){dumpRaw[k]=dumpRaw[k].filter(r=>r.f!==id);if(!dumpRaw[k].length)delete dumpRaw[k]}}BMn=-1;buildOpts();paint(s);render()}
+function clearSlot(s){files[s]=[];if(s==='team'){TF={};teamMap=new Map()}else{baseRaw=baseRaw.filter(r=>r.sl!==s);for(const k in dumpRaw){dumpRaw[k]=dumpRaw[k].filter(r=>r.sl!==s);if(!dumpRaw[k].length)delete dumpRaw[k]}}BMn=-1;buildOpts();paint(s);render()}
+function paint(s){const d=$('#z-'+s);if(!d)return;const fl=files[s]||[],tot=fl.reduce((a,m)=>a+m.rows,0);
+d.querySelector('.tot').textContent=fl.length?fl.length+' file'+(fl.length>1?'s':'')+' · '+tot.toLocaleString()+' rows':'Nothing loaded';
+d.classList.toggle('ok',tot>0);d.classList.toggle('warn',fl.length>0&&tot===0&&fl.every(m=>m.pct>=100));
+d.querySelector('.fl').innerHTML=fl.map(m=>'<div class="fi"><div class="fr"><span title="'+esc(m.name)+'">'+esc(m.name)+'</span><button type="button" data-id="'+m.id+'" title="Remove this file">✕</button></div><div class="pgb"><i style="width:'+m.pct+'%"></i></div><div class="fs">'+esc(m.st)+'</div>'+(m.cc?'<div class="fs">'+m.cc.map((x,i)=>SH[i]+' '+x.toLocaleString()).join(' · ')+'</div>':'')+(m.miss&&m.miss.length?'<div class="fs w" title="'+esc(m.miss.join(', '))+'">Missing columns: '+esc(m.miss.slice(0,5).join(', '))+(m.miss.length>5?' +'+(m.miss.length-5)+' more':'')+'</div>':'')+'</div>').join('')}
+$('#up').innerHTML='';
+SLOTS.forEach(([s,l])=>{const d=document.createElement('div');d.className='cd uc';d.id='z-'+s;
+d.innerHTML='<div class="uh"><b>'+l+'</b><span class="tot"></span></div><div class="drop">'+(s==='team'?'<em>Two columns only: counsellor email and team name (header row optional).</em>':'<em>Drop .xlsx, .xls or .csv files here. No file limit.</em>')+'<label class="btn">Choose files<input type="file" multiple accept=".xlsx,.xls,.csv,.tsv,.txt" hidden></label><button type="button" class="pb">Paste from sheet</button><button type="button" class="cl">Clear '+l+'</button></div><div class="pa" hidden><textarea placeholder="Copy cells from your sheet, header row included, and paste here"></textarea><button type="button" class="lp">Load pasted data</button></div><div class="fl"></div>';
+const inp=d.querySelector('input');inp.onchange=()=>{const a=[...inp.files];inp.value='';addFiles(s,a)};
+d.ondragover=e=>{e.preventDefault();d.classList.add('ov')};d.ondragleave=()=>d.classList.remove('ov');d.ondrop=e=>{e.preventDefault();d.classList.remove('ov');addFiles(s,[...e.dataTransfer.files])};
+d.querySelector('.pb').onclick=()=>{const p=d.querySelector('.pa');p.hidden=!p.hidden};
+d.querySelector('.lp').onclick=()=>{const t=d.querySelector('textarea'),txt=t.value;if(!txt.trim())return;t.value='';d.querySelector('.pa').hidden=true;run(s,'Pasted data '+(++PN),pumpText(txt))};
+d.querySelector('.cl').onclick=()=>clearSlot(s);
+d.querySelector('.fl').onclick=e=>{const b=e.target.closest('button[data-id]');if(b)rmFile(s,+b.dataset.id)};
+$('#up').appendChild(d);paint(s)});
+$('#clr').onclick=()=>{files={};TF={};baseRaw=[];dumpRaw={};teamMap=new Map();BMn=-1;DV={};tab='ALL';SLOTS.forEach(([s])=>paint(s));setSt('');render()};
+function dedupe(src){const m=new Map();for(const r of src){const o=m.get(r.k);if(!o||r.md>=o.md)m.set(r.k,r)}return[...m.values()]}
+function pool(){let s;if(tab==='ALL-TIME')s=baseRaw;else if(tab==='ALL')s=Object.keys(dumpRaw).length?Object.values(dumpRaw).flat():baseRaw;else s=dumpRaw[tab]||[];return dedupe(s)}
+let TX='#161a22';const PAL=['#4a3324','#8a6544','#b8936a','#d6bf9f','#6e6962','#a39a8f','#c9c2b8','#7b5a3c','#9c8466','#5a5550','#e0cdb0','#3a352f'];
+Chart.defaults.animation={duration:900,easing:'easeOutQuart'};
+Chart.register({id:'vals',afterDatasetsDraw(ch){const t=ch.config.type;if(t!=='bar'&&t!=='pie')return;const x=ch.ctx,o=ch.options,hz=o.indexAxis==='y',st=o.scales&&o.scales.x&&o.scales.x.stacked;x.save();x.font='600 11px "Segoe UI",system-ui,sans-serif';x.textBaseline='middle';
+const tot=t==='pie'?ch.data.datasets[0].data.reduce((a,b)=>a+b,0):0;
+ch.data.datasets.forEach((ds,i)=>{const m=ch.getDatasetMeta(i);if(m.hidden)return;m.data.forEach((e,j)=>{const v=ds.data[j];if(!v)return;
+if(t==='pie'){if(v/tot<.04)return;const p=e.tooltipPosition();x.textAlign='center';x.fillStyle='#fff';x.fillText(v+' ('+Math.round(v*100/tot)+'%)',p.x,p.y);return}
+const sz=hz?Math.abs(e.x-e.base):Math.abs(e.base-e.y);
+if(st){if(sz<18)return;x.textAlign='center';x.fillStyle='#fff';x.fillText(v,hz?(e.x+e.base)/2:e.x,hz?e.y:(e.y+e.base)/2)}
+else{x.fillStyle=TX;if(hz){x.textAlign='left';x.fillText(v.toLocaleString(),e.x+6,e.y)}else{x.textAlign='center';x.fillText(v,e.x,e.y-8)}}})});x.restore()}});
+function mk(id,cfg){charts[id]&&charts[id].destroy();cfg.options=Object.assign({responsive:true,maintainAspectRatio:false},cfg.options||{});charts[id]=new Chart($('#'+id),cfg)}
+function tbl(h,rows,fn){return'<table><tr>'+h.map(x=>'<th>'+x+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map((c,i)=>'<td'+(fn?fn(r,i):'')+'>'+(i?c:esc(c))+'</td>').join('')+'</tr>').join('')+'</table>'}
+function grp(recs,fn,lim){const g=new Map();for(const r of recs){const k=fn(r);let o=g.get(k);if(!o){o={n:0,c:Array(8).fill(0),w:0};g.set(k,o)}o.n++;o.c[r.ct]++;if(r.walk)o.w++}return[...g].sort((a,b)=>b[1].n-a[1].n).slice(0,lim).map(([k,o])=>[k,o.n,...o.c,o.w,pc(o.c[7],o.n)])}
+const GH=['Name','Leads',...SH,'Walk-ins','Conv %'];
+function render(){const cs=getComputedStyle(document.documentElement);TX=cs.getPropertyValue('--tx');$('#th').textContent=eff()==='dark'?'☀ Light mode':'☾ Dark mode';Chart.defaults.color=cs.getPropertyValue('--mu');Chart.defaults.borderColor=cs.getPropertyValue('--bd');
+const dn=Object.keys(dumpRaw),tabs=['ALL',...(baseRaw.length?['ALL-TIME']:[]),...dn];if(!tabs.includes(tab))tab='ALL';
+$('#tabs').innerHTML=tabs.map(t=>'<button class="'+(t===tab?'on':'')+'" data-t="'+esc(t)+'">'+esc(t==='ALL'?'All current dumps':t==='ALL-TIME'?'All-time baseline':t+' funnel')+'</button>').join('');
+$('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;render()});
+const ems=[...new Set([...baseRaw,...Object.values(dumpRaw).flat()].map(r=>r.em).filter(Boolean))].sort();
+const tms=[...new Set(ems.map(T))].sort(),fto=$('#ft').value,foo=$('#fo').value;
+$('#ft').innerHTML='<option value="">All teams</option>'+tms.map(t=>'<option>'+esc(t)+'</option>').join('');$('#ft').value=fto;
+const eo=ems.filter(e=>!$('#ft').value||T(e)===$('#ft').value);$('#fo').innerHTML='<option value="">All counsellors</option>'+eo.map(t=>'<option>'+esc(t)+'</option>').join('');$('#fo').value=foo;
+DK.forEach((k,i)=>{const s=$('#x'+i),v=s.value,o=[...(DV[k]||[])].sort();s.innerHTML='<option value="">'+k+': all</option>'+o.map(x=>'<option>'+esc(x)+'</option>').join('');s.value=v});
+if(BMn!==baseRaw.length){BM=new Map(dedupe(baseRaw).map(r=>[r.k,r]));BMn=baseRaw.length}
+const ft=$('#ft').value,fo=$('#fo').value,fc=$('#fc').value,fw=$('#fw').value,ff=$('#ff').value,d1=$('#d1').value?Date.parse($('#d1').value):0,d2=$('#d2').value?Date.parse($('#d2').value)+864e5-1:0,xs=DK.map((k,i)=>[k,$('#x'+i).value]).filter(a=>a[1]);
+const F=r=>(!ft||T(r.em)===ft)&&(!fo||r.em===fo)&&(fc===''||r.ct==fc)&&(!fw||(fw==='1')===r.walk)&&(!ff||(ff==='f')===!!(baseRaw.length&&!BM.has(r.k)))&&(!d1||r.cr>=d1)&&(!d2||(r.cr&&r.cr<=d2))&&xs.every(([k,v])=>r.dm[k]===v);
+if(!baseRaw.length&&!dn.length){$('#kp').innerHTML='<div class="cd">Go to the <a href="#upl">upload section</a> at the bottom and add the all-time LSQ dump to begin.</div>';return}
+const recs=pool().filter(F),n=recs.length;
+const CH=[['ft','Team: '+ft,ft],['fo','Counsellor: '+fo,fo],['fc','Category: '+CATS[fc],fc],['fw','Walk-in: '+(fw==='1'?'yes':'no'),fw],['ff','Lead age: '+(ff==='f'?'fresh':'in all-time dump'),ff],['d1','Created from '+$('#d1').value,$('#d1').value],['d2','Created to '+$('#d2').value,$('#d2').value],...DK.map((k,i)=>['x'+i,k+': '+$('#x'+i).value,$('#x'+i).value])].filter(c=>c[2]);
+$('#chips').innerHTML=(CH.length?CH.map(c=>'<button type="button" data-k="'+c[0]+'">'+esc(c[1])+' ✕</button>').join(''):'<span style="color:var(--mu)">No filters applied.</span>')+'<span style="color:var(--mu)">Showing <b>'+n.toLocaleString()+'</b> leads. Click a pie slice or a team bar to filter.</span>';
+$('#chips').querySelectorAll('button').forEach(b=>b.onclick=()=>{document.getElementById(b.dataset.k).value='';render()});
+const bm=BM,useT=tab!=='ALL-TIME'&&baseRaw.length&&dn.length;
+const mx=Array.from({length:9},()=>Array(8).fill(0));let up=0,dw=0,cv=0,fr=0;
+if(useT)for(const r of recs){const b=bm.get(r.k),f=b?b.ct:8;mx[f][r.ct]++;if(f===8)fr++;else if(r.ct===7&&f!==7)cv++;else if(r.ct<f&&r.ct!==7)up++;else if(r.ct>f&&f!==7)dw++}
+const cc=Array(8).fill(0);recs.forEach(r=>cc[r.ct]++);const wk=recs.filter(r=>r.walk).length;
+const K=[[n,'Leads in view'],[cc[0],'HOT'],[cc[1],'WARM'],[cc[2],'Not connected'],[wk,'Walk-ins'],[cc[7],'Enrolled'],[pc(cc[7],n),'Enrolment %'],[pc(cc[0],n),'HOT % of leads'],[pc(cc[1],n),'WARM % of leads'],[pc(cc[0]+cc[1],n),'HOT+WARM % of leads']];
+if(useT)K.push([fr,'Fresh post baseline'],[up,'Moved up'],[dw,'Moved down'],[cv,'Converted since baseline']);
+$('#kp').innerHTML=K.map(([a,b])=>'<div class="cd kp"><b'+(typeof a==='number'?' data-v="'+a+'"':'')+'>'+a+'</b><span>'+b+'</span></div>').join('');
+document.querySelectorAll('#kp b[data-v]').forEach(e=>{const v=+e.dataset.v,t0=performance.now();(function s(t){const p=Math.min((t-t0)/700,1);e.textContent=Math.round(v*(1-Math.pow(1-p,3))).toLocaleString();if(p<1)requestAnimationFrame(s)})(t0)});
+const fv=[n,recs.filter(r=>r.ct!==2&&r.ct!==6).length,cc[0]+cc[1]+cc[4],wk,cc[7]];
+mk('c1',{type:'bar',data:{labels:['Leads','Contacted','Interested (hot, warm, VP)','Walk-in','Enrolled'],datasets:[{data:fv,backgroundColor:['#eadfcd','#d6bf9f','#bb9770','#8a6544','#4a3324']}]},options:{indexAxis:'y',plugins:{legend:{display:false}}}});
+mk('c2',{type:'pie',data:{labels:CATS,datasets:[{data:cc,backgroundColor:COL,borderWidth:0}]},options:{onClick:(e,a)=>{if(a.length)pickF('fc',a[0].index)},plugins:{legend:{position:'right'}}}});
+const dk=t=>new Date(t).toISOString().slice(0,10),cr={},en={};
+for(const r of recs){if(r.cr)cr[dk(r.cr)]=(cr[dk(r.cr)]||0)+1;if(r.ct===7){const t=r.ed||r.md;if(t)en[dk(t)]=(en[dk(t)]||0)+1}}
+const days=[...new Set([...Object.keys(cr),...Object.keys(en)])].sort().slice(-62);
+mk('c3',{type:'line',data:{labels:days,datasets:[{label:'Created',data:days.map(d=>cr[d]||0),borderColor:'#c4a27a',tension:.3},{label:'Enrolled',data:days.map(d=>en[d]||0),borderColor:'#4a3324',tension:.3}]}});
+let a=0,b=0;const ca=days.map(d=>a+=cr[d]||0),cb=days.map(d=>b+=en[d]||0);
+mk('c4',{type:'line',data:{labels:days,datasets:[{label:'Leads created',data:ca,fill:true,borderColor:'#c4a27a',backgroundColor:'#c4a27a55',tension:.3},{label:'Enrolled',data:cb,fill:true,borderColor:'#4a3324',backgroundColor:'#4a332477',tension:.3}]}});
+mk('c5',{type:'bar',data:{labels:[...SH,'FRESH'],datasets:CATS.map((c,j)=>({label:SH[j],backgroundColor:COL[j],data:mx.map((_,i)=>mx[SH.indexOf(SH[i])===-1?8:i][j]).slice(0,9)}))},options:{scales:{x:{stacked:true},y:{stacked:true}}}});
+const dm=$('#dim').value,dg=new Map();for(const r of recs){const v=r.dm[dm];let o=dg.get(v);if(!o){o=Array(8).fill(0);dg.set(v,o)}o[r.ct]++}
+const dt=[...dg].sort((x,y)=>y[1].reduce((p,q)=>p+q)-x[1].reduce((p,q)=>p+q)).slice(0,10);
+mk('c6',{type:'bar',data:{labels:dt.map(x=>x[0]),datasets:CATS.map((c,j)=>({label:SH[j],backgroundColor:COL[j],data:dt.map(x=>x[1][j])}))},options:{scales:{x:{stacked:true},y:{stacked:true}}}});
+// conversion by baseline category
+const cm=new Map(pool().map(r=>[r.k,r])),cvr=CATS.map(()=>({b:0,s:0,c:0,w:0}));
+if(useT)for(const b of bm.values()){if(!F(b))continue;const o=cvr[b.ct];o.b++;const c=cm.get(b.k);if(c){o.s++;if(c.walk)o.w++;if(c.ct===7&&b.ct!==7)o.c++}}
+if(useT){$('#cvn').textContent='Of leads that sat in each category in the all-time dump, how many appear in the selected dumps and converted since.';
+$('#cv').innerHTML=tbl(['All-time category','In baseline','Seen in dumps','Walk-ins','Converted since','Conv % of baseline','Conv % of seen'],cvr.map((o,i)=>[CATS[i],o.b,o.s,o.w,i===7?'–':o.c,i===7?'–':pc(o.c,o.b),i===7?'–':pc(o.c,o.s)]))}
+else{$('#cvn').textContent='';$('#cv').innerHTML='<p class="sub">Upload the all-time dump and at least one current dump (and pick a current tab) to see conversion by category.</p>'}
+$('#mx').innerHTML=useT?tbl(['All-time → now',...SH,'Total'],mx.map((r,i)=>[i<8?CATS[i]:'FRESH (new after baseline)',...r,r.reduce((p,q)=>p+q)]),(r,i)=>{if(!i||i>8)return'';const v=r[i],t=r[9];return v&&t?' style="background:'+COL[i-1]+Math.round(20+Math.min(v/t,1)*90).toString(16).padStart(2,'0')+'"':''}):'<p class="sub">Needs the all-time dump plus a current dump.</p>';
+const tg=grp(recs,r=>T(r.em),60),og=grp(recs,r=>r.em||'(no owner)',300);
+$('#tt').innerHTML=tbl(GH,tg);$('#ct').innerHTML=tbl(GH,og);
+const PH=['Name','Leads',...SH.map(x=>x+' %'),'Walk-in %','Conv %'],pp=g=>g.map(r=>[r[0],r[1],...r.slice(2,10).map(x=>pc(x,r[1])),pc(r[10],r[1]),r[11]]);
+$('#ttp').innerHTML=tbl(PH,pp(tg));$('#ctp').innerHTML=tbl(PH,pp(og));
+const srcs=[...(baseRaw.length?[['All-time baseline',baseRaw]]:[]),...dn.map(k=>[k,dumpRaw[k]])];
+$('#hw').innerHTML=tbl(['Dump','Total leads','HOT','WARM','HOT+WARM','HOT %','WARM %','HOT+WARM %'],srcs.map(([k,s])=>{const q=dedupe(s).filter(F),t=q.length,h=q.filter(r=>r.ct===0).length,w=q.filter(r=>r.ct===1).length;return[k,t,h,w,h+w,pc(h,t),pc(w,t),pc(h+w,t)]}));
+$('#cs').innerHTML=tbl(['Category','Leads','% of total leads'],[...CATS.map((c,i)=>[c,cc[i],pc(cc[i],n)]),['HOT+WARM',cc[0]+cc[1],pc(cc[0]+cc[1],n)],['Walk-ins',wk,pc(wk,n)],['Total',n,n?'100%':'–']]);
+const HH=tg.reduce((s,r)=>s+r[2],0),WW=tg.reduce((s,r)=>s+r[3],0);
+$('#tc').innerHTML=tbl(['Team','Leads','HOT','WARM','HOT+WARM','HOT % of team leads','WARM % of team leads','HOT+WARM % of team leads','Share of all HOT','Share of all WARM','Share of all HOT+WARM'],tg.map(r=>[r[0],r[1],r[2],r[3],r[2]+r[3],pc(r[2],r[1]),pc(r[3],r[1]),pc(r[2]+r[3],r[1]),pc(r[2],HH),pc(r[3],WW),pc(r[2]+r[3],HH+WW)]));
+const ts=tg.slice().sort((x,y)=>y[2]+y[3]-x[2]-x[3]).slice(0,12);
+mk('c7',{type:'bar',data:{labels:ts.map(r=>r[0]),datasets:[{label:'HOT',data:ts.map(r=>r[2]),backgroundColor:COL[0]},{label:'WARM',data:ts.map(r=>r[3]),backgroundColor:COL[1]}]},options:{onClick:(e,a)=>{if(a.length)pickF('ft',ts[a[0].index][0])}}});
+mk('c8',{type:'pie',data:{labels:ts.map(r=>r[0]),datasets:[{data:ts.map(r=>r[2]+r[3]),borderWidth:0,backgroundColor:ts.map((_,i)=>PAL[i%PAL.length])}]},options:{onClick:(e,a)=>{if(a.length)pickF('ft',ts[a[0].index][0])},plugins:{legend:{position:'right'}}}});
+// insights
+const I=[];I.push('<b>'+n.toLocaleString()+'</b> leads in view: '+cc[0]+' hot, '+cc[1]+' warm, '+cc[2]+' not yet connected, '+cc[7]+' enrolled ('+pc(cc[7],n)+').');
+if(cc[2]/n>.3)I.push('<b>'+pc(cc[2],n)+'</b> of leads are still not connected. Contactability is the biggest leak.');
+if(useT){const bc=cvr.map((o,i)=>[i,o]).filter(([i,o])=>i<7&&o.b>=20).sort((x,y)=>y[1].c/y[1].b-x[1].c/x[1].b)[0];
+if(bc)I.push('Best converting all-time category: <b>'+CATS[bc[0]]+'</b> at '+pc(bc[1].c,bc[1].b)+' of baseline leads.');
+const h=cvr[0];if(h.b)I.push(h.b-h.c+' HOT leads from the baseline have not enrolled yet ('+pc(h.c,h.b)+' converted).');
+I.push(fr+' fresh leads entered after the baseline; '+up+' moved up a category, '+dw+' moved down, '+cv+' converted.')}
+const best=og.filter(r=>r[1]>=20).sort((x,y)=>parseFloat(y[y.length-1])-parseFloat(x[x.length-1]))[0];if(best)I.push('Top counsellor by enrolment %: <b>'+esc(best[0])+'</b> at '+best[best.length-1]+' on '+best[1]+' leads.');
+const hp=og.slice().sort((x,y)=>y[2]-x[2])[0];if(hp&&hp[2])I.push('Most HOT leads sit with <b>'+esc(hp[0])+'</b> ('+hp[2]+'). Prioritise follow-up there.');
+const tw=tg.filter(r=>r[1]>=20).sort((x,y)=>parseFloat(y[y.length-1])-parseFloat(x[x.length-1]))[0];if(tw)I.push('Best team: <b>'+esc(tw[0])+'</b> at '+tw[tw.length-1]+'.');
+$('#ins').innerHTML=I.map(x=>'<li>'+x+'</li>').join('')}
+render();
+</script></body></html>
